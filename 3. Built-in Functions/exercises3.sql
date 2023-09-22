@@ -246,6 +246,14 @@ SELECT
 FROM bookings
 WHERE AGE(starts_at, booked_at) >= INTERVAL '10 months'
 
+# or
+
+SELECT
+	user_id,
+	AGE(starts_at, booked_at) AS "Early Birds"
+FROM bookings
+WHERE starts_at - booked_at >= '10 months'
+
 
 24. Match or Not:
 
@@ -253,7 +261,7 @@ SELECT
 	companion_full_name,
 	email
 FROM users
-WHERE companion_full_name ILIKE '%aNd%'
+WHERE companion_full_name ILIKE '%aNd%'  --- ILIKE is case insensitive
 AND email NOT LIKE '%@gmail';
 
 
