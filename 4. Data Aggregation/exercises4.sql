@@ -103,7 +103,7 @@ ORDER BY "Max Deposit Amount" DESC
 LIMIT 3;
 
 
-12. Age Group13. SUM the Employees:
+12. Age Group:
 
 SELECT
 	CASE
@@ -121,20 +121,77 @@ GROUP BY "Age Group"
 ORDER BY "Age Group" ASC;
 
 
+13. SUM the Employees:
+
+SELECT
+	SUM(CASE WHEN department_id = 1 THEN 1 ELSE 0 END) AS "Engineering",
+	SUM(CASE WHEN department_id = 2 THEN 1 ELSE 0 END) AS "Tool Design",
+	SUM(CASE WHEN department_id = 3 THEN 1 ELSE 0 END) AS "Sales",
+	SUM(CASE WHEN department_id = 4 THEN 1 ELSE 0 END) AS "Marketing",
+	SUM(CASE WHEN department_id = 5 THEN 1 ELSE 0 END) AS "Purchasing",
+	SUM(CASE WHEN department_id = 6 THEN 1 ELSE 0 END) AS "Research and Development",
+	SUM(CASE WHEN department_id = 7 THEN 1 ELSE 0 END) AS "Production"
+FROM employees;
+
+
 14. Update Employees’ Data:
+
+UPDATE employees
+SET
+	salary = CASE
+		WHEN hire_date < '2015-01-16' THEN salary + 2500
+		WHEN hire_date < '2020-03-04' THEN salary + 1500
+		ELSE salary
+		END,
+
+	job_title = CASE
+		WHEN hire_date < '2015-01-16' THEN CONCAT('Senior', ' ', job_title)
+		WHEN hire_date < '2020-03-04' THEN CONCAT('Mid-', job_title)
+		ELSE job_title
+		END;
 
 
 
 15. Categorizes Salary:
 
+SELECT
+	job_title,
+	CASE
+		WHEN AVG(salary) > 45800 THEN 'Good'
+		WHEN AVG(salary) BETWEEN 27500 AND 45800 THEN 'Medium'
+		WHEN AVG(salary) < 27500 THEN 'Need Improvement'
+	END AS "Category"
+FROM employees
+GROUP BY job_title
+ORDER BY "Category" ASC, job_title ASC;
 
 
 16. WHERE Project Status:
 
+SELECT
+	project_name,
+	CASE
+		WHEN start_date IS NULL AND end_date IS NULL THEN 'Ready for development'
+		WHEN (start_date IS NOT NULL) AND (end_date IS NULL) THEN 'In Progress'
+		ELSE 'Done'
+	END AS "project_status"
+FROM projects
+WHERE project_name LIKE '%Mountain%';
 
 
 17. HAVING Salary Level:
 
+SELECT
+	department_id,
+	COUNT(*) AS "num_employees",
+	CASE
+		WHEN AVG(salary) > 50000 THEN 'Above average'
+		WHEN AVG(salary) <= 50000 THEN 'Below average'
+	END AS "salary_level"
+FROM employees
+GROUP BY department_id
+HAVING AVG(salary) > 30000
+ORDER BY department_id;
 
 
 18. Nested CASE Conditions✶:
