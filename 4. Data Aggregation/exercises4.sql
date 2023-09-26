@@ -90,6 +90,21 @@ WHERE deposit_expiration_date <= '1983-08-17'
 GROUP BY "Wizard Name", "Start Date", "Expiration Date", "Amount"
 ORDER BY deposit_expiration_date ASC;
 
+# or
+
+CREATE VIEW "view_wizard_deposits_with_expiration_date_before_1983_08_17"
+AS
+SELECT
+	DISTINCT
+	CONCAT(first_name, ' ', last_name) AS "Wizard Name",
+	deposit_start_date AS "Start Date",
+	deposit_expiration_date AS "Expiration Date",
+	deposit_amount AS "Amount"
+FROM wizard_deposits
+WHERE deposit_expiration_date <= '1983-08-17'
+ORDER BY deposit_expiration_date ASC;
+
+
 
 11. Filter Max Deposit:
 
@@ -131,6 +146,18 @@ SELECT
 	SUM(CASE WHEN department_id = 5 THEN 1 ELSE 0 END) AS "Purchasing",
 	SUM(CASE WHEN department_id = 6 THEN 1 ELSE 0 END) AS "Research and Development",
 	SUM(CASE WHEN department_id = 7 THEN 1 ELSE 0 END) AS "Production"
+FROM employees;
+
+# or
+
+SELECT
+	COUNT(CASE WHEN department_id = 1 THEN 1 END) AS "Engineering",
+	COUNT(CASE WHEN department_id = 2 THEN 1 END) AS "Tool Design",
+	COUNT(CASE WHEN department_id = 3 THEN 1 END) AS "Sales",
+	COUNT(CASE WHEN department_id = 4 THEN 1 END) AS "Marketing",
+	COUNT(CASE WHEN department_id = 5 THEN 1 END) AS "Purchasing",
+	COUNT(CASE WHEN department_id = 6 THEN 1 END) AS "Research and Development",
+	COUNT(CASE WHEN department_id = 7 THEN 1 END) AS "Production"
 FROM employees;
 
 
@@ -183,7 +210,7 @@ WHERE project_name LIKE '%Mountain%';
 
 SELECT
 	department_id,
-	COUNT(*) AS "num_employees",
+	COUNT(department_id) AS "num_employees",
 	CASE
 		WHEN AVG(salary) > 50000 THEN 'Above average'
 		WHEN AVG(salary) <= 50000 THEN 'Below average'
@@ -196,10 +223,38 @@ ORDER BY department_id;
 
 18. Nested CASE Conditions✶:
 
+CREATE VIEW view_performance_rating
+AS
+SELECT
+	first_name,
+	last_name,
+	job_title,
+	salary,
+	department_id,
+	CASE
+		WHEN salary >= 25000 THEN
+				CASE WHEN job_title LIKE 'Senior%' THEN 'High-performing Senior'
+				ELSE 'High-performing Employee'
+				END
+			ELSE 'Average-performing'
+		END AS performance_rating
+FROM employees;
 
 
 19. Foreign Key✶:
 
+CREATE TABLE employees_projects(
+	id SERIAL PRIMARY KEY,
+	employee_id INTEGER,
+	project_id INTEGER,
+	FOREIGN KEY (employee_id) REFERENCES employees(id),
+	FOREIGN KEY (project_id) REFERENCES projects(id)
+);
 
 
 20. JOIN Tables✶:
+
+SELECT *
+FROM departments AS d
+JOIN employees AS e
+ON d.id = e.department_id;
