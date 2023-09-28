@@ -153,6 +153,9 @@ CREATE TABLE students_exams(
 	student_id INTEGER,
 	exam_id INTEGER,
 
+	CONSTRAINT pk_students_exams
+	    PRIMARY KEY(student_id, exam_id),
+
 	CONSTRAINT fk_students_exams_students
 		FOREIGN KEY (student_id)
 			REFERENCES students(id),
@@ -249,14 +252,36 @@ CREATE TABLE order_items(
 
 11. Delete Cascade:
 
+ALTER TABLE countries
+ADD CONSTRAINT fk_countries_continents
+	FOREIGN KEY (continent_code)
+		REFERENCES continents(continent_code) ON DELETE CASCADE;
+
+ALTER TABLE countries
+ADD CONSTRAINT fk_countries_currencies
+	FOREIGN KEY (currency_code)
+		REFERENCES currencies(currency_code) ON DELETE CASCADE;
+
 
 12. Update Cascade:
+
+ALTER TABLE countries_rivers
+ADD CONSTRAINT fk_countries_rivers_rivers
+	FOREIGN KEY (river_id)
+		REFERENCES rivers(id) ON UPDATE CASCADE;
+
+ALTER TABLE countries_rivers
+ADD CONSTRAINT fk_countries_rivers_countries
+	FOREIGN KEY (country_code)
+		REFERENCES countries(country_code) ON UPDATE CASCADE;
 
 
 13. SET NULL:
 
 
+
 14. Peaks in Rila✶:
+
 
 
 15. Countries Without Any Rivers✶:
