@@ -240,6 +240,9 @@ CREATE TABLE order_items(
 	order_id INTEGER,
 	item_id INTEGER,
 
+	CONSTRAINT pk_order_items
+	PRIMARY KEY (order_id, item_id),
+
 	CONSTRAINT fk_order_items_orders
 		FOREIGN KEY (order_id)
 			REFERENCES orders(id),
@@ -292,7 +295,9 @@ CREATE TABLE contacts(
 
 	CONSTRAINT fk_contacts_customers
 		FOREIGN KEY (customer_id)
-			REFERENCES customers(id) ON DELETE SET NULL
+			REFERENCES customers(id)
+			    ON DELETE SET NULL
+			    ON UPDATE CASCADE
 );
 
 INSERT INTO customers(customer_name)
@@ -310,6 +315,25 @@ WHERE id = 1;
 
 14. Peaks in Rila✶:
 
+SELECT
+	m.mountain_range,
+	p.peak_name,
+	p.elevation
+FROM mountains AS m
+JOIN peaks AS p
+	ON m.id = p.mountain_id
+WHERE mountain_range = 'Rila'
+ORDER BY p.elevation DESC;
 
 
 15. Countries Without Any Rivers✶:
+
+SELECT
+	COUNT(*) AS "countries_without_rivers"
+FROM countries
+LEFT JOIN countries_rivers
+	ON countries.country_code = countries_rivers.country_code
+WHERE countries_rivers.country_code IS NULL;
+
+
+
