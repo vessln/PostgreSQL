@@ -153,18 +153,56 @@ ORDER BY elevation DESC;
 
 12. Count Mountain Ranges:
 
+SELECT
+	mc.country_code,
+	COUNT(m.mountain_range) AS "mountain_range_count"
+FROM mountains_countries AS mc
+JOIN mountains AS m
+	ON mc.mountain_id = m.id
+WHERE mc.country_code IN ('US', 'RU', 'BG')
+GROUP BY country_code
+ORDER BY "mountain_range_count" DESC;
 
 
 13. Rivers in Africa:
 
+SELECT
+	c.country_name,
+	r.river_name
+FROM countries AS c
+LEFT JOIN countries_rivers AS cr
+	ON c.country_code = cr.country_code
+		LEFT JOIN rivers AS r
+			ON cr.river_id = r.id
+WHERE c.continent_code LIKE 'AF'
+ORDER BY country_name ASC
+LIMIT 5;
 
 
 14. Minimum Average Area Across Continents:
 
+SELECT
+	MIN(min_average_area)
+FROM (SELECT
+		continent_code,
+		AVG(area_in_sq_km) AS min_average_area
+	FROM countries
+	GROUP BY continent_code) AS a;
 
 
 15. Countries Without Any Mountains:
 
+SELECT COUNT(*) AS "countries_without_mountains"
+FROM countries AS c
+LEFT JOIN mountains_countries AS mc
+	ON c.country_code = mc.country_code
+WHERE mc.country_code IS NULL;
+
+# or
+
+SELECT COUNT(*) AS "countries_without_mountains"
+FROM countries
+WHERE country_code NOT IN (SELECT country_code FROM mountains_countries);
 
 
 16. Monasteries by Country✶:
