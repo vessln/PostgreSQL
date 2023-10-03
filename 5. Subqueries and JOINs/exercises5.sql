@@ -58,9 +58,9 @@ FULL JOIN bookings AS b
 	ON a.booking_id = b.booking_id
 		FULL JOIN customers AS c
 				ON b.customer_id = c.customer_id
-ORDER BY booking_id,
-		apartment_owner,
-		customer_name;
+ORDER BY booking_id ASC,
+		apartment_owner ASC,
+		customer_name ASC;
 
 
 5. Multiplication of Information**:
@@ -207,14 +207,89 @@ WHERE country_code NOT IN (SELECT country_code FROM mountains_countries);
 
 16. Monasteries by Country✶:
 
+CREATE TABLE monasteries(
+	id SERIAL PRIMARY KEY,
+	monastery_name VARCHAR(255),
+	country_code CHAR(2)
+);
+
+INSERT INTO monasteries(monastery_name, country_code)
+VALUES
+	('Rila Monastery "St. Ivan of Rila"', 'BG'),
+	('Bachkovo Monastery "Virgin Mary"', 'BG'),
+	('Troyan Monastery "Holy Mother''s Assumption"', 'BG'),
+	('Kopan Monastery', 'NP'),
+	('Thrangu Tashi Yangtse Monastery', 'NP'),
+	('Shechen Tennyi Dargyeling Monastery', 'NP'),
+	('Benchen Monastery', 'NP'),
+	('Southern Shaolin Monastery', 'CN'),
+	('Dabei Monastery', 'CN'),
+	('Wa Sau Toi', 'CN'),
+	('Lhunshigyia Monastery', 'CN'),
+	('Rakya Monastery', 'CN'),
+	('Monasteries of Meteora', 'GR'),
+	('The Holy Monastery of Stavronikita', 'GR'),
+	('Taung Kalat Monastery', 'MM'),
+	('Pa-Auk Forest Monastery', 'MM'),
+	('Taktsang Palphug Monastery', 'BT'),
+	('Sümela Monastery', 'TR');
+
+ALTER TABLE countries
+ADD COLUMN three_rivers BOOLEAN DEFAULT FALSE;
+
+UPDATE countries
+SET three_rivers = (
+	SELECT COUNT(*) >= 3
+	FROM countries_rivers AS cr
+		WHERE cr.country_code = countries.country_code);
+
+SELECT
+	m.monastery_name,
+	c.country_name
+FROM monasteries AS m
+JOIN countries AS c
+	ON m.country_code = c.country_code
+WHERE NOT three_rivers
+ORDER BY monastery_name ASC;
 
 
 17. Monasteries by Continents and Countries✶:
 
+UPDATE countries
+SET country_name = 'Burma'
+WHERE country_name = 'Myanmar';
+
+INSERT INTO monasteries(monastery_name, country_code)
+VALUES
+	('Hanga Abbey', (SELECT country_code FROM countries WHERE country_name = 'Tanzania'));
+
+SELECT
+	ct.continent_name,
+	cn.country_name,
+	COUNT(m.id) AS "monasteries_count"
+FROM countries AS cn
+	LEFT JOIN continents AS ct
+		USING(continent_code)
+			LEFT JOIN monasteries AS m
+				USING(country_code)
+WHERE three_rivers = FALSE OR three_rivers IS NULL
+GROUP BY country_name, continent_name
+ORDER BY monasteries_count DESC,
+		country_name ASC;
+
+# ignore: 'Another row should also be inserted into the "monasteries" table with 'Myin-Tin-Daik'....'
 
 
 18. Retrieving Information about Indexes:
 
+SELECT
+	tablename,
+	indexname,
+	indexdef
+FROM pg_indexes
+WHERE schemaname = 'public'
+ORDER BY tablename ASC,
+		indexname ASC;
 
 
 19. Continents and Currencies✶:
