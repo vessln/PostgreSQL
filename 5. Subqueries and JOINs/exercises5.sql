@@ -292,8 +292,16 @@ ORDER BY tablename ASC,
 		indexname ASC;
 
 
-19. Continents and Currencies✶:
 
 
 
-20. The Highest Peak in Each Country✶:
+
+
+
+
+
+
+
+
+
+
