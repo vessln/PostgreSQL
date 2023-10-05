@@ -57,13 +57,60 @@ END;
 $$
 LANGUAGE plpgsql;
 
+# or
+
+CREATE FUNCTION fn_is_word_comprised(set_of_letters VARCHAR, word VARCHAR)
+RETURNS BOOLEAN AS
+$$
+BEGIN
+	RETURN TRIM(LOWER(word), LOWER(set_of_letters)) = '';
+END;
+$$
+LANGUAGE plpgsql;
+
 
 4. Game Over:
 
+CREATE OR REPLACE FUNCTION fn_is_game_over(is_game_over BOOLEAN)
+RETURNS TABLE (name VARCHAR(50),
+			   game_type_id INT,
+			   is_finished BOOLEAN)
+AS
+$$
+BEGIN
+	RETURN QUERY
+		SELECT g.name, g.game_type_id, g.is_finished
+		FROM games AS g
+		WHERE g.is_finished = is_game_over;
+END;
+$$
+LANGUAGE plpgsql;
 
 
 5. Difficulty Level:
 
+CREATE OR REPLACE FUNCTION fn_difficulty_level(level INT)
+RETURNS VARCHAR(30)
+AS
+$$
+DECLARE current_lvl VARCHAR(30);
+BEGIN
+	IF (level < 41) THEN current_lvl := 'Normal Difficulty';
+	ELSIF (level BETWEEN 41 AND 60) THEN current_lvl := 'Nightmare Difficulty';
+	ELSIF (level > 60) THEN current_lvl := 'Hell Difficulty';
+	END IF;
+	RETURN current_lvl;
+END;
+$$
+LANGUAGE plpgsql;
+
+SELECT
+	ug.user_id,
+	ug.level,
+	ug.cash,
+	fn_difficulty_level(ug.level)
+FROM users_games AS ug
+ORDER BY user_id ASC;
 
 
 6. Cash in User Games Odd Rows✶:
