@@ -115,22 +115,139 @@ ORDER BY user_id ASC;
 
 6. Cash in User Games Odd Rows✶:
 
+CREATE OR REPLACE FUNCTION fn_cash_in_users_games(game_name VARCHAR(50))
+RETURNS TABLE(total_cash NUMERIC) AS
+$$
+DECLARE
+BEGIN
+	RETURN QUERY WITH cash_games AS (
+		SELECT
+			ug.cash,
+			ROW_NUMBER() OVER (ORDER BY cash DESC) AS ordered_row
+		FROM users_games AS ug
+		JOIN games AS g
+			ON g.id = ug.game_id
+		WHERE g.name = game_name)
+
+	SELECT ROUND(SUM(cash), 2)
+	FROM cash_games
+	WHERE ordered_row % 2 <> 0;
+END;
+$$
+LANGUAGE plpgsql;
+
+7. Retrieving Account Holders**:
+
+CREATE OR REPLACE PROCEDURE sp_retrieving_holders_with_balance_higher_than(searched_balance NUMERIC)
+AS
+$$
+DECLARE
+	full_name VARCHAR;
+	total_balance NUMERIC;
+	data_for_holder RECORD;
+BEGIN
+	FOR data_for_holder IN
+		SELECT
+			CONCAT(ah.first_name, ' ', ah.last_name) AS full_name,
+			SUM(a.balance) AS total_balance
+		FROM account_holders AS ah
+			JOIN accounts AS a
+				ON ah.id = a.account_holder_id
+		GROUP BY full_name
+		HAVING SUM(a.balance) > searched_balance
+		ORDER BY full_name ASC
+	LOOP
+		RAISE NOTICE '% - %', data_for_holder.full_name, data_for_holder.total_balance;
+	END LOOP;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+# CALL sp_retrieving_holders_with_balance_higher_than(200000)
+
+# NOTICE:  Monika Miteva - 565649.2000
+# NOTICE:  Petar Kirilov - 245656.2300
+# NOTICE:  Petko Petkov Junior - 6546543.2300
+# NOTICE:  Susan Cane - 5585351.2400
+# NOTICE:  Zlatko Zlatyov - 1112627.9000
 
 
 8. Deposit Money:
 
+CREATE OR REPLACE PROCEDURE sp_deposit_money(
+	account_id INTEGER,
+	money_amount NUMERIC(12, 4)) AS
+$$
+BEGIN
+	UPDATE accounts
+	SET balance = balance + money_amount
+	WHERE account_id = accounts.id;
+END;
+$$
+LANGUAGE plpgsql;
 
 
 9. Withdraw Money:
 
+CREATE OR REPLACE PROCEDURE sp_withdraw_money(
+	account_id INTEGER,
+	money_amount NUMERIC(12, 4)) AS
+$$
+DECLARE
+	balance_var NUMERIC(12, 4);
+BEGIN
+	SELECT balance FROM accounts WHERE account_id = id INTO balance_var;
+	IF balance_var < money_amount THEN
+		RAISE NOTICE 'Insufficient balance to withdraw %', money_amount;
+	ELSE
+		UPDATE accounts
+		SET balance = balance - money_amount
+		WHERE account_id = accounts.id;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
 
 
 10. Money Transfer:
 
+CREATE OR REPLACE PROCEDURE sp_transfer_money(
+	sender_id INTEGER,
+	receiver_id INTEGER,
+	amount NUMERIC(12, 4)) AS
+$$
+BEGIN
+	CALL sp_withdraw_money(sender_id, amount);
+	IF (SELECT balance FROM accounts WHERE sender_id = id) >= 0 THEN
+		CALL sp_deposit_money(receiver_id, amount);
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+# or
+
+CREATE OR REPLACE PROCEDURE sp_transfer_money(
+	sender_id INTEGER,
+	receiver_id INTEGER,
+	amount NUMERIC(12, 4)) AS
+$$
+BEGIN
+	CALL sp_withdraw_money(sender_id, amount);
+	CALL sp_deposit_money(receiver_id, amount);
+
+	IF (SELECT balance FROM accounts WHERE sender_id = id) < 0 THEN
+		ROLLBACK;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
 
 
 11. Delete Procedure:
 
+DROP PROCEDURE sp_retrieving_holders_with_balance_higher_than;
 
 
 12. Log Accounts Trigger:
