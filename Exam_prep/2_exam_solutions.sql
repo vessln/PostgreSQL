@@ -107,6 +107,12 @@ WHERE NOT EXISTS (
 	WHERE clients.id = co.client_id)
 AND LENGTH(full_name) > 3;
 
+# or
+
+DELETE FROM clients
+WHERE id NOT IN (SELECT client_id FROM clients)
+AND LENGTH(full_name) > 3;
+
 
 3.5. Cars:
 
