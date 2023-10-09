@@ -194,7 +194,59 @@ ORDER BY c.id;
 
 4.10. Find all Courses by Client’s Phone Number:
 
+CREATE FUNCTION fn_courses_by_client(phone_num VARCHAR(20))
+RETURNS INTEGER AS
+$$
+BEGIN
+	RETURN (
+		SELECT
+			COUNT(cl.id)
+		FROM clients AS cl
+		JOIN courses AS co ON cl.id = co.client_id
+		WHERE cl.phone_number = phone_num);
+END;
+$$
+LANGUAGE plpgsql;
 
 
 4.11. Full Info for Address:
+
+CREATE TABLE search_results (
+    id SERIAL PRIMARY KEY,
+    address_name VARCHAR(50),
+    full_name VARCHAR(100),
+    level_of_bill VARCHAR(20),
+    make VARCHAR(30),
+    condition CHAR(1),
+    category_name VARCHAR(50)
+);
+
+CREATE OR REPLACE PROCEDURE sp_courses_by_address(address_name VARCHAR(100))
+AS
+$$
+BEGIN
+	TRUNCATE TABLE search_results;
+	INSERT INTO search_results(address_name, full_name, level_of_bill, make, condition, category_name)
+		SELECT
+		a.name,
+		cl.full_name,
+		CASE
+			WHEN co.bill <= 20 THEN 'Low'
+			WHEN co.bill <= 30 THEN 'Medium'
+			ELSE 'High'
+		END AS "level_of_bill",
+		c.make,
+		c.condition,
+		ct.name
+		FROM
+			addresses AS a
+		JOIN courses AS co ON co.from_address_id = a.id
+			JOIN clients AS cl ON cl.id = co.client_id
+				JOIN cars AS c ON c.id = co.car_id
+					JOIN categories AS ct ON ct.id = c.category_id
+		WHERE a.name = address_name
+		ORDER BY c.make ASC, cl.full_name ASC;
+END;
+$$
+LANGUAGE plpgsql;
 
