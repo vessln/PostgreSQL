@@ -113,7 +113,7 @@ VALUES
 	('BattleBooks', 13, 'www.battlebooks.com', '+12345678907');
 
 
-2. 3. Update:
+2.3. Update:
 
 UPDATE players_ranges
 SET max_players = max_players + 1
@@ -233,6 +233,60 @@ ORDER BY "average_rating" DESC;
 
 4.11. Creator of Board Games:
 
+CREATE OR REPLACE FUNCTION fn_creator_with_board_games(creator_first_name VARCHAR(30))
+RETURNS INTEGER AS
+$$
+BEGIN
+	RETURN (SELECT COUNT(cbg.board_game_id)
+		   	FROM creators AS c
+				JOIN creators_board_games AS cbg
+					ON c.id = cbg.creator_id
+		   	WHERE c.first_name = creator_first_name);
+END;
+$$
+LANGUAGE plpgsql;
 
 
-4.12. Search for Board Games
+4.12. Search for Board Games:
+
+CREATE TABLE search_results (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50),
+    release_year INT,
+    rating FLOAT,
+    category_name VARCHAR(50),
+    publisher_name VARCHAR(50),
+    min_players VARCHAR(50),
+    max_players VARCHAR(50)
+);
+
+CREATE OR REPLACE PROCEDURE usp_search_by_category(category VARCHAR(50))
+AS
+$$
+BEGIN
+	TRUNCATE TABLE search_results;
+	INSERT INTO search_results(name,
+							   release_year,
+							   rating,
+							   category_name,
+							   publisher_name,
+							   min_players,
+							   max_players)
+		SELECT
+			bg.name,
+			bg.release_year,
+			bg.rating,
+			c.name,
+			p.name,
+			CONCAT(pr.min_players, ' people'),
+			CONCAT(pr.max_players, ' people')
+		FROM board_games AS bg
+		JOIN categories AS c ON c.id = bg.category_id
+			JOIN publishers AS p ON p.id = bg.publisher_id
+				JOIN players_ranges AS pr ON pr.id = bg.players_range_id
+		WHERE c.name = category
+		ORDER BY p.name ASC, bg.release_year DESC;
+END;
+$$
+LANGUAGE plpgsql;
+
