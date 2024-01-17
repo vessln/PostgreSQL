@@ -1,1 +1,1 @@
-Here is my solutions for PostgreSQL tasks.
+Here is my solutions for Softuni's PostgreSQL course.
